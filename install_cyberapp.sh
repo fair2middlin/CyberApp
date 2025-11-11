@@ -253,36 +253,12 @@ if __name__ == "__main__":
         print_diagnostics()
         sys.exit(0) 
     
-    # This block is ignored by WSGI deployment.
-    app.run(host="0.0.0.0", port=8080)
 PYCODE
 
 chmod +x "$APP_FILE"
 chown -R "$FLASK_USER":"$FLASK_USER" "$APP_DIR"
 
 echo "[OK] Flask app created and secured."
-
-# --- Cleanup old service (ENSURES a clean WSGI deployment) ---
-echo "[INFO] Starting cleanup of old unstable systemd service..."
-# Check if the old systemd service file exists and stop/disable it
-if systemctl list-unit-files --full -all | grep -F "$SERVICE_NAME"; then
-    echo "[INFO] Found old service: $SERVICE_NAME. Stopping and disabling."
-    systemctl stop "$SERVICE_NAME" || true
-    systemctl disable "$SERVICE_NAME" || true
-    
-    if [ -f "$SERVICE_FILE" ]; then
-        rm -f "$SERVICE_FILE"
-        echo "[INFO] Removed $SERVICE_FILE."
-    fi
-else
-    echo "[INFO] Old service $SERVICE_NAME not found. Skipping cleanup."
-fi
-
-# Reload systemd daemon to recognize the removal (important if it was disabled)
-echo "[INFO] Reloading systemd daemon configuration."
-systemctl daemon-reload
-
-echo "[OK] Cleaned up previous service artifacts."
 
 # --- Apache WSGI Configuration (FIX APPLIED HERE) ---
 echo "[OK] Configuring Apache for stable WSGI deployment..."
